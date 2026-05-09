@@ -1,0 +1,30 @@
+# MedMind
+__pycache__/
+*.pyc
+.pytest_cache/
+.env
+.env.*
+backend/.env
+.venv/
+venv/
+vector_store/
+backend/vector_store/
+profiles/
+backend/profiles/
+history/
+backend/history/
+
+# Eval outputs
+eval/results.jsonl
+eval/summary.json
+
+# Build artifacts
+*.egg-info/
+dist/
+build/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

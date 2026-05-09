@@ -1,0 +1,1 @@
+"""MedMind — Models Package"""

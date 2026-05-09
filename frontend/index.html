@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedMind — Private AI Health Advisor</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-content {
+            background: white;
+            padding: 32px;
+            border-radius: var(--radius-lg);
+            width: 90%;
+            max-width: 550px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-premium);
+            animation: slideUp 0.4s ease-out;
+        }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; color: var(--text-secondary); }
+        .form-control { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-family: inherit; font-size: 0.95rem; transition: var(--transition); }
+        .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border); }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- ── Sidebar ── -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                    </svg>
+                    <h1 class="logo-text">Med<span>Mind</span></h1>
+                </div>
+            </div>
+
+            <button class="btn-new-chat" id="newChatBtn">
+                <i data-lucide="plus"></i>
+                New Conversation
+            </button>
+
+            <div class="sidebar-section">
+                <h3 class="sidebar-section-title">Health Profile</h3>
+                <div class="profile-card" id="profileCard">
+                    <div class="profile-info">
+                        <h4 id="profileName">Guest User</h4>
+                        <p id="profileSummary">Personalize your medical advice</p>
+                    </div>
+                    <button class="btn-new-chat" style="margin-top: 12px; padding: 10px; font-size: 0.8rem; background-color: white; color: var(--text-primary); border: 1px solid var(--border);" id="setupProfileBtn">
+                        <i data-lucide="user-cog" style="width: 14px; height: 14px;"></i>
+                        Set Up Profile
+                    </button>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3 class="sidebar-section-title">Knowledge Base</h3>
+                <div class="kb-stats">
+                    <div class="stat-box">
+                        <span class="stat-value" id="kbMedical">56</span>
+                        <span class="stat-label">Medical</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-value" id="kbUser">0</span>
+                        <span class="stat-label">Your Docs</span>
+                    </div>
+                </div>
+                <button class="btn-new-chat" style="margin-top: 12px; padding: 10px; font-size: 0.8rem; background-color: white; color: var(--text-primary); border: 1px solid var(--border);" id="uploadBtn">
+                    <i data-lucide="upload-cloud" style="width: 14px; height: 14px;"></i>
+                    Upload Document
+                </button>
+                <input type="file" id="fileInput" hidden accept=".pdf,.txt,.docx,.md,image/*">
+            </div>
+
+            <div class="sidebar-section" style="flex: 1; display: flex; flex-direction: column;">
+                <h3 class="sidebar-section-title">Recents</h3>
+                <div class="chat-history" id="chatHistory">
+                    <!-- History items will be injected here -->
+                </div>
+            </div>
+
+            <div class="sidebar-footer" style="padding-top: 16px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-muted);">
+                <div style="width: 8px; height: 8px; border-radius: 50%; background-color: var(--success);"></div>
+                Local Engine Online
+            </div>
+        </aside>
+
+        <!-- ── Main Content ── -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <button class="btn-sidebar-toggle" id="sidebarToggle">
+                        <i data-lucide="layout-sidebar"></i>
+                    </button>
+                    <div class="header-title" id="currentChatTitle">MedMind Health Assistant</div>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-icon" title="View Sources" id="sourcesToggle">
+                        <i data-lucide="book-open"></i>
+                    </button>
+                    <button class="btn-icon" title="Clear Chat" id="clearChatBtn">
+                        <i data-lucide="trash-2"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Chat Container -->
+            <div class="chat-container" id="chatContainer">
+                <div class="chat-wrapper">
+                    <!-- Welcome Screen -->
+                    <div class="welcome-screen" id="welcomeScreen">
+                        <div style="display: flex; justify-content: center; margin-bottom: 24px;">
+                            <div style="background: var(--primary-light); padding: 24px; border-radius: 50%;">
+                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <h1>Welcome to <span>MedMind</span></h1>
+                        <p>Your private, local-first health and wellness advisor. Ask me anything about symptoms, nutrition, or medications.</p>
+                        
+                        <div class="suggestion-grid">
+                            <div class="suggestion-card" onclick="setQuery('What are the symptoms of iron deficiency?')">
+                                <i data-lucide="thermometer" class="suggestion-icon"></i>
+                                <p>What are the symptoms of iron deficiency?</p>
+                            </div>
+                            <div class="suggestion-card" onclick="setQuery('I take metformin, can I eat honey?')">
+                                <i data-lucide="pill" class="suggestion-icon"></i>
+                                <p>I take metformin, can I eat honey?</p>
+                            </div>
+                            <div class="suggestion-card" onclick="setQuery('What foods help with better sleep?')">
+                                <i data-lucide="moon" class="suggestion-icon"></i>
+                                <p>What foods help with better sleep?</p>
+                            </div>
+                            <div class="suggestion-card" onclick="setQuery('How to treat a mild burn at home?')">
+                                <i data-lucide="flame" class="suggestion-icon"></i>
+                                <p>How to treat a mild burn at home?</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Messages will be injected here -->
+                    <div id="messageList"></div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <!-- Agent Orchestration Preview -->
+                    <div class="agent-grid" id="agentGrid" style="display: none;">
+                        <div class="agent-badge" id="agent-analyzer">
+                            <i data-lucide="search" class="agent-icon"></i>
+                            Analyzer
+                        </div>
+                        <div class="agent-badge" id="agent-retriever">
+                            <i data-lucide="database" class="agent-icon"></i>
+                            Retriever
+                        </div>
+                        <div class="agent-badge" id="agent-reasoner">
+                            <i data-lucide="brain" class="agent-icon"></i>
+                            Reasoner
+                        </div>
+                        <div class="agent-badge" id="agent-verifier">
+                            <i data-lucide="shield-check" class="agent-icon"></i>
+                            Verifier
+                        </div>
+                    </div>
+
+                    <div class="composer">
+                        <button class="btn-composer" id="attachBtn" title="Upload Image/Document">
+                            <i data-lucide="image"></i>
+                        </button>
+                        <textarea class="composer-textarea" id="userInput" placeholder="Ask MedMind about your health..." rows="1"></textarea>
+                        <div class="composer-actions">
+                            <button class="btn-composer" id="voiceBtn" title="Voice Input">
+                                <i data-lucide="mic"></i>
+                            </button>
+                            <button class="btn-composer btn-send" id="sendBtn" disabled>
+                                <i data-lucide="send"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="imagePreview" style="display: none; margin-top: 12px; position: relative; width: fit-content;">
+                        <img id="previewImg" style="max-height: 100px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                        <button id="removeImg" style="position: absolute; top: -8px; right: -8px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 12px;">×</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Health Profile Modal -->
+    <div id="profileModal" class="modal-overlay">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.5rem;">Health Profile</h2>
+                <button style="background: none; border: none; cursor: pointer; color: var(--text-muted);" onclick="document.getElementById('profileModal').classList.remove('open')">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 24px;">Your profile is stored locally on your device and helps MedMind give personalized advice.</p>
+
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="profileNameInput" class="form-control" placeholder="e.g., John Doe">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Age</label>
+                    <input type="number" id="profileAgeInput" class="form-control" placeholder="e.g., 25">
+                </div>
+                <div class="form-group">
+                    <label>Weight (kg)</label>
+                    <input type="number" id="profileWeightInput" class="form-control" placeholder="e.g., 75">
+                </div>
+                <div class="form-group">
+                    <label>Height (cm)</label>
+                    <input type="number" id="profileHeightInput" class="form-control" placeholder="e.g., 175">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Known Conditions (comma-separated)</label>
+                <input type="text" id="profileConditionsInput" class="form-control" placeholder="e.g., Type 2 Diabetes, Hypertension">
+            </div>
+
+            <div class="form-group">
+                <label>Medications (comma-separated)</label>
+                <input type="text" id="profileMedsInput" class="form-control" placeholder="e.g., Metformin 500mg, Lisinopril 10mg">
+            </div>
+
+            <div class="form-group">
+                <label>Allergies (comma-separated)</label>
+                <input type="text" id="profileAllergiesInput" class="form-control" placeholder="e.g., Penicillin, Peanuts">
+            </div>
+
+            <div class="form-group">
+                <label>Health Goals (comma-separated)</label>
+                <input type="text" id="profileGoalsInput" class="form-control" placeholder="e.g., Lose 5kg, Run 5km, Better sleep">
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-new-chat" style="background: white; border: 1px solid var(--border); color: var(--text-primary); min-width: 120px;" onclick="document.getElementById('profileModal').classList.remove('open')">Cancel</button>
+                <button class="btn-new-chat" id="saveProfileBtn" style="min-width: 140px;">Save Profile</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals & Overlays -->
+    <div id="toast" class="toast">Message saved</div>
+
+    <script src="js/app.js"></script>
+    <script>
+        window.addEventListener('load', () => {
+            lucide.createIcons();
+        });
+        
+        const tx = document.getElementById('userInput');
+        tx.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        }, false);
+    </script>
+</body>
+</html>

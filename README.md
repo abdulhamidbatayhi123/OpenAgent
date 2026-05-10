@@ -32,6 +32,25 @@ To prove the OpenAgent architecture works, this repository includes **MedMind** 
   <img src="docs/media/medmind-ui.png" alt="MedMind in action: query → 5-skill pipeline → grounded answer with verified citations" width="780">
 </p>
 
+### Example Chat (How it works under the hood)
+
+**User:** "I'm taking Metformin for my diabetes. Is it safe to eat grapefruit?"
+
+**System Pipeline:**
+1. 🔍 **Analyzer** extracts `{"medications": ["Metformin"], "conditions": ["Diabetes"], "foods": ["Grapefruit"], "urgency": "normal"}`.
+2. 📚 **Retriever** searches the local ChromaDB and finds no known interactions between Metformin and Grapefruit in the curated database.
+3. 🧠 **Reasoner (8B)** generates a response: *"Grapefruit is generally safe with Metformin. However, it can interact with statins [S1], which many diabetics also take. Always check with your doctor [S2]."* (Note: it hallucinated source `[S2]`).
+4. 🛡️ **Verifier (3B)** checks the citations against the retrieved evidence. It confirms `[S1]` is in the evidence, but `[S2]` was fabricated by the Reasoner. It strips `[S2]`.
+5. 📋 **Formatter** adds a medical disclaimer and outputs the final response.
+
+**Final Output:**
+> *Disclaimer: This information is for educational purposes and is not medical advice.*
+> 
+> Grapefruit is generally safe with Metformin. However, it can interact with statins **[1]**, which many diabetics also take. 
+> 
+> **Sources:**
+> **[1]** FDA: Grapefruit Juice and Some Drugs Don't Mix
+
 A health question runs through five specialised agents. The retriever pulls
 evidence from a local vector store, the reasoner writes a cited answer, and a
 **separate verifier checks every `[Sx]` marker against the actual evidence and

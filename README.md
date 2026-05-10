@@ -40,12 +40,27 @@ The screenshots below are from a live session — a real query processed through
 <tr>
 <td><img src="docs/media/demo-welcome.png" alt="MedMind welcome screen with suggestion cards" width="100%"></td>
 <td><img src="docs/media/demo-processing.png" alt="Agent badges showing pipeline progress — Analyzer active" width="100%"></td>
-<td><img src="docs/media/demo-response.png" alt="Final verified answer with [S1][S4] citations and all agents green" width="100%"></td>
+<td><img src="docs/media/demo-response.png" alt="Final verified answer with inline citations and all agents green" width="100%"></td>
 </tr>
 <tr>
 <td><sub>Clean UI with knowledge base stats, health profile, and suggestion cards</sub></td>
 <td><sub>Agent badges light up in sequence: Analyzer → Retriever → Reasoner → Verifier</sub></td>
-<td><sub>Verified answer with citations [S1][S4] — all 4 agents completed successfully</sub></td>
+<td><sub>Verified answer with inline [S1][S4] citations — all 4 agents completed</sub></td>
+</tr>
+</table>
+
+<table>
+<tr>
+<td width="50%" align="center"><b>4. Verified Sources</b></td>
+<td width="50%" align="center"><b>5. Pipeline Transparency</b></td>
+</tr>
+<tr>
+<td><img src="docs/media/demo-sources.png" alt="Verified sources panel showing S1-S5 with source attribution" width="100%"></td>
+<td><img src="docs/media/demo-transparency.png" alt="Expanded transparency panel showing each agent's role and effort" width="100%"></td>
+</tr>
+<tr>
+<td><sub>Every citation is traced back to its source — S1-S5 with document titles and categories. "1 cite stripped" = the Verifier caught a hallucination.</sub></td>
+<td><sub>Full pipeline transparency: each agent's task, effort percentage, and the Verifier's decision to strip fabricated citations.</sub></td>
 </tr>
 </table>
 

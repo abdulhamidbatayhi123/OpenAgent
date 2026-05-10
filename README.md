@@ -102,6 +102,24 @@ evidence from a local vector store, the reasoner writes a cited answer, and a
 **separate verifier checks every `[Sx]` marker against the actual evidence and
 strips anything unsupported** before the user sees it.
 
+### Telegram Bot
+
+The same pipeline powers a Telegram bot — same orchestrator, same 5-agent
+pipeline, same verified citations. The bot also supports **image analysis**
+(food photos, nutrition labels) and **personalized health profiles** (BMI,
+weight range).
+
+<p align="center">
+  <img src="docs/media/telegram-demo.png" alt="MedMind Telegram bot: image analysis, BMI calculation, cited sources" width="380">
+</p>
+<p align="center"><sub>Real Telegram conversation: image-based fitness analysis with cited sources, personalized BMI calculation with health profile data</sub></p>
+
+**Key features shown:**
+- 📸 **Image analysis** — send a photo and get fitness/nutrition analysis via `gemma3:4b` vision model
+- 📊 **Personalized BMI** — "Am I overweight?" uses your saved profile (70.0 kg, 171.0 cm, 21 years)
+- 📑 **Cited sources** — S1-S5 sources from uploaded PDFs, same verification pipeline as the web UI
+- 🔗 **Shared orchestrator** — the Telegram bot and web UI share the exact same `Orchestrator` instance
+
 ---
 
 ## What this project actually shows

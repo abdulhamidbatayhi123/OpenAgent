@@ -1,8 +1,8 @@
 <div align="center">
 
-# MedMind
+# OpenAgent
 
-### A multi-agent RAG pipeline that makes 3B-parameter local LLMs answer health questions without inventing citations.
+### A multi-model, multi-agent RAG framework for building private, trustworthy AI.
 
 <img src="https://img.shields.io/badge/runtime-100%25%20local-1e88e5" alt="100% local">
 <img src="https://img.shields.io/badge/architecture-multi--agent%20RAG-7c3aed" alt="Multi-agent RAG">
@@ -11,15 +11,21 @@
 
 </div>
 
-> **Portfolio project, not a medical product.** MedMind shows how a five-stage
-> agent pipeline plus retrieval and a citation verifier can make small open-source
-> LLMs (3B–8B parameters) answer health questions in a more trustworthy way than
-> a single model can on its own. It is **not a doctor** and **not** a substitute
-> for professional medical advice.
+> **The Problem:** Commercial APIs are expensive at scale and leak private user data. Open-source models solve privacy and cost, but small local models (e.g. 3B parameters) struggle with complex reasoning and often hallucinate citations.
+> 
+> **The OpenAgent Solution:** Don't rely on a single prompt or a single model. Use a **multi-model, multi-agent pipeline** where specialized agents handle specific tasks, and a dedicated verifier agent catches hallucinations.
 
 ---
 
-## Demo
+## 🏥 Showcase / Proof of Concept: MedMind
+
+To prove the OpenAgent architecture works, this repository includes **MedMind** — a fully functional health advisor built on the framework. MedMind shows how a five-stage agent pipeline plus retrieval and a citation verifier can make small open-source LLMs answer health questions in a highly trustworthy way.
+
+*(Portfolio project, not a medical product. Always consult a doctor.)*
+
+---
+
+## Demo (MedMind Showcase)
 
 <!-- Replace this block with a 30–60 second screen capture once you record one. -->
 <p align="center">
@@ -163,8 +169,8 @@ UI's perf badge.
 ### Setup
 
 ```bash
-git clone https://github.com/<you>/medmind.git
-cd medmind
+git clone https://github.com/<you>/openagent.git
+cd openagent
 
 # 1. Pull the models
 ollama pull qwen2.5:3b

@@ -27,29 +27,60 @@ To prove the OpenAgent architecture works, this repository includes **MedMind** 
 
 ## Demo (MedMind Showcase)
 
-<!-- Replace this block with a 30–60 second screen capture once you record one. -->
+### Live Pipeline in Action
+
+The screenshots below are from a live session — a real query processed through all 5 agents locally:
+
+<table>
+<tr>
+<td width="33%" align="center"><b>1. Welcome Screen</b></td>
+<td width="33%" align="center"><b>2. Pipeline Processing</b></td>
+<td width="33%" align="center"><b>3. Verified Response</b></td>
+</tr>
+<tr>
+<td><img src="docs/media/demo-welcome.png" alt="MedMind welcome screen with suggestion cards" width="100%"></td>
+<td><img src="docs/media/demo-processing.png" alt="Agent badges showing pipeline progress — Analyzer active" width="100%"></td>
+<td><img src="docs/media/demo-response.png" alt="Final verified answer with [S1][S4] citations and all agents green" width="100%"></td>
+</tr>
+<tr>
+<td><sub>Clean UI with knowledge base stats, health profile, and suggestion cards</sub></td>
+<td><sub>Agent badges light up in sequence: Analyzer → Retriever → Reasoner → Verifier</sub></td>
+<td><sub>Verified answer with citations [S1][S4] — all 4 agents completed successfully</sub></td>
+</tr>
+</table>
+
+### How the Pipeline Works (Step-by-Step Example)
+
+**User asks:** *"What are the symptoms of iron deficiency?"*
+
+| Step | Agent | What happens | Time |
+|:---:|---|---|:---:|
+| 1 | 🔍 **Analyzer** (3B) | Extracts `{"query_type": "symptom", "urgency": "normal", "symptoms": ["iron deficiency"]}` | ~1s |
+| 2 | 📚 **Retriever** | Multi-query search + cross-encoder rerank → finds 5 relevant chunks from ChromaDB | ~0.4s |
+| 3 | 🧠 **Reasoner** (8B) | Generates chain-of-thought answer with citation markers `[S1]`, `[S4]` | ~8s |
+| 4 | 🛡️ **Verifier** (3B) | Checks each `[Sx]` against evidence. Strips any the Reasoner fabricated. | ~2s |
+| 5 | 📋 **Formatter** | Adds medical disclaimer, structures sources, flags urgency | ~0.1s |
+
+**Result:** *"Iron deficiency anemia can cause fatigue, weakness, pale skin, shortness of breath, dizziness, cold hands and feet, brittle nails, headache, fast heartbeat, and cravings for non-food items (pica). **[S1] [S4]**"*
+
+> 🛡️ The Verifier confirmed `[S1]` and `[S4]` are real evidence. If the Reasoner had fabricated a citation, it would be silently stripped before the user sees it.
+
+### Workflow Visualizations
+
 <p align="center">
-  <img src="docs/media/medmind-ui.png" alt="MedMind in action: query → 5-skill pipeline → grounded answer with verified citations" width="780">
+  <img src="docs/media/pipeline-workflow.png" alt="OpenAgent 5-stage pipeline architecture" width="780">
 </p>
+<p align="center"><sub>The 5-stage OpenAgent pipeline: each agent uses the right-sized model for its task</sub></p>
 
-### Example Chat (How it works under the hood)
+<p align="center">
+  <img src="docs/media/verifier-demo.png" alt="Citation Verifier catching hallucinated citations" width="780">
+</p>
+<p align="center"><sub>The Citation Verifier catches fabricated citations — reducing hallucinations from 14 to 0</sub></p>
 
-**User:** "I'm taking Metformin for my diabetes. Is it safe to eat grapefruit?"
-
-**System Pipeline:**
-1. 🔍 **Analyzer** extracts `{"medications": ["Metformin"], "conditions": ["Diabetes"], "foods": ["Grapefruit"], "urgency": "normal"}`.
-2. 📚 **Retriever** searches the local ChromaDB and finds no known interactions between Metformin and Grapefruit in the curated database.
-3. 🧠 **Reasoner (8B)** generates a response: *"Grapefruit is generally safe with Metformin. However, it can interact with statins [S1], which many diabetics also take. Always check with your doctor [S2]."* (Note: it hallucinated source `[S2]`).
-4. 🛡️ **Verifier (3B)** checks the citations against the retrieved evidence. It confirms `[S1]` is in the evidence, but `[S2]` was fabricated by the Reasoner. It strips `[S2]`.
-5. 📋 **Formatter** adds a medical disclaimer and outputs the final response.
-
-**Final Output:**
-> *Disclaimer: This information is for educational purposes and is not medical advice.*
-> 
-> Grapefruit is generally safe with Metformin. However, it can interact with statins **[1]**, which many diabetics also take. 
-> 
-> **Sources:**
-> **[1]** FDA: Grapefruit Juice and Some Drugs Don't Mix
+<p align="center">
+  <img src="docs/media/multi-model-routing.png" alt="Multi-model routing: right-sized models per task" width="780">
+</p>
+<p align="center"><sub>Multi-model routing: structured tasks use fast 3B models, only reasoning needs 8B</sub></p>
 
 A health question runs through five specialised agents. The retriever pulls
 evidence from a local vector store, the reasoner writes a cited answer, and a
@@ -76,14 +107,24 @@ as a measurable engineering property and provides the harness to check it.
 
 ```mermaid
 graph TD
-    A[User question] --> B(1. Symptom Analyzer<br/>3B model · JSON output<br/>extracts symptoms, urgency, sub-queries)
-    B -->|sub-queries, urgency, language| C(2. Medical Retriever<br/>multi-query + cross-encoder rerank<br/>local ChromaDB + optional trusted web)
-    C -->|top-K evidence with scores| D{retrieval<br/>confidence ≥ 0.45?}
-    D -- no --> R[Refuse honestly<br/>'not enough evidence']
-    D -- yes --> E(3. Clinical Reasoner<br/>8B model · free-form prose<br/>chain-of-thought with [S1][S2] cites)
-    E -->|raw answer with [Sx]| F(4. Citation Verifier<br/>3B model · strict JSON<br/>strips unsupported [Sx])
-    F -->|verified, cited answer| G(5. Safety Formatter<br/>rule-based<br/>disclaimer · urgency · sources)
-    G --> H[Final response]
+    A["🗣️ User question"] --> B["1. Symptom Analyzer\n3B model · JSON output\nextracts symptoms, urgency, sub-queries"]
+    B -->|"sub-queries, urgency"| C["2. Medical Retriever\nmulti-query + cross-encoder rerank\nlocal ChromaDB + optional trusted web"]
+    C -->|"top-K evidence with scores"| D{"retrieval\nconfidence ≥ 0.45?"}
+    D -- no --> R["❌ Refuse honestly\nnot enough evidence"]
+    D -- yes --> E["3. Clinical Reasoner\n8B model · free-form prose\nchain-of-thought with citations"]
+    E -->|"raw answer with cite markers"| F["4. Citation Verifier\n3B model · strict JSON\nstrips unsupported citations"]
+    F -->|"verified, cited answer"| G["5. Safety Formatter\nrule-based\ndisclaimer · urgency · sources"]
+    G --> H["✅ Final response"]
+
+    style A fill:#4f46e5,stroke:#4f46e5,color:#fff
+    style B fill:#0891b2,stroke:#0891b2,color:#fff
+    style C fill:#0891b2,stroke:#0891b2,color:#fff
+    style D fill:#d97706,stroke:#d97706,color:#fff
+    style E fill:#7c3aed,stroke:#7c3aed,color:#fff
+    style F fill:#dc2626,stroke:#dc2626,color:#fff
+    style G fill:#0891b2,stroke:#0891b2,color:#fff
+    style H fill:#16a34a,stroke:#16a34a,color:#fff
+    style R fill:#991b1b,stroke:#991b1b,color:#fff
 ```
 
 **Why five agents instead of one prompt.** Each stage is small enough that a

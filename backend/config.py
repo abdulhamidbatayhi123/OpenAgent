@@ -41,17 +41,14 @@ CHUNK_SIZE = 600
 CHUNK_OVERLAP = 120
 TOP_K_RETRIEVAL = 15
 TOP_K_RERANK = 5
-EMBEDDING_DIM = 768
 
 # --- Confidence & Grounding --------------------------------------------------
+# Minimum retrieval confidence (sigmoid-normalised) required before the
+# pipeline will attempt to answer.  Below this, the system refuses honestly.
 CONFIDENCE_THRESHOLD = 0.35
-TOP_SCORE_THRESHOLD = 0.60
-AVG_SCORE_THRESHOLD = 0.48
-MEDICAL_SAFETY_THRESHOLD = 0.65
 
 # --- Memory -------------------------------------------------------------------
 MAX_CONVERSATION_HISTORY = 20
-MAX_HISTORY_SESSIONS = 50
 
 # --- Server -------------------------------------------------------------------
 API_HOST = os.getenv("MEDMIND_HOST", "0.0.0.0")

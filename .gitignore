@@ -1,12 +1,19 @@
-# MedMind
+# MedMind — .gitignore
+
+# Python
 __pycache__/
 *.pyc
+*.pyo
 .pytest_cache/
+
+# Environment
 .env
 .env.*
 backend/.env
 .venv/
 venv/
+
+# Runtime data (generated locally, not shared)
 vector_store/
 backend/vector_store/
 profiles/
@@ -14,7 +21,7 @@ backend/profiles/
 history/
 backend/history/
 
-# Eval outputs
+# Eval outputs (regenerated per machine)
 eval/results.jsonl
 eval/summary.json
 
@@ -28,3 +35,7 @@ build/
 Thumbs.db
 .idea/
 .vscode/
+
+# Misc
+misc_assets/
+*.log

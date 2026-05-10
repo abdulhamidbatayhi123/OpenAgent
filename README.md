@@ -11,7 +11,7 @@
 
 </div>
 
-> **The Problem:** Commercial APIs are expensive at scale and leak private user data. Open-source models solve privacy and cost, but small local models (e.g. 3B parameters) struggle with complex reasoning and often hallucinate citations.
+> **The Problem:** Commercial APIs are expensive at scale and leak private user data. Open-source models solve privacy and cost, but local models struggle with complex reasoning and often hallucinate citations.
 > 
 > **The OpenAgent Solution:** Don't rely on a single prompt or a single model. Use a **multi-model, multi-agent pipeline** where specialized agents handle specific tasks, and a dedicated verifier agent catches hallucinations.
 
@@ -302,30 +302,11 @@ medmind/
 
 ---
 
-## Honest limitations
 
-These are the questions any senior reader will ask, so they're answered up front:
-
-- **The knowledge base is small.** 25 conditions, 15 drugs, 30 foods, hand-curated
-  from MedlinePlus, CDC, NIH, and USDA. The system will (correctly) refuse most
-  questions outside this scope. The architecture scales to more — see roadmap.
-- **No clinical validation.** The eval measures grounding and hallucination, not
-  medical accuracy. A clinician has not reviewed the curated facts.
-- **Latency is consumer-hardware-bound.** On a laptop CPU the reasoner step
-  dominates and a typical query takes 10–30 seconds. The per-skill timings make
-  this visible.
-- **Vision is approximate.** Calorie estimates from a food photo with `gemma3:4b`
-  were within ~30% in the cases I tested. Treat as a rough sanity check, not a
-  measurement.
-- **Web search is off by default.** A trusted-domain DuckDuckGo hook exists
-  (`MEDMIND_WEB_SEARCH=true`) but is not part of the eval results, and enabling
-  it does send queries to a third party — which dents the "100% private" claim.
-
----
 
 ## What this project demonstrates
 
-For a CV, the takeaway is not the chatbot. It's:
+ The takeaway is not the chatbot. It's:
 
 - **Multi-agent orchestration** — five agents with role-scoped prompts and
   per-agent model assignment, driven by a single orchestrator that exposes
@@ -344,7 +325,7 @@ For a CV, the takeaway is not the chatbot. It's:
 
 ## Roadmap
 
-Things I would do next if this were more than a portfolio piece:
+Things i am doing now to make it even better :
 
 - **10× the knowledge base** by ingesting MedQuAD (NIH Q&A pairs) and curated
   MedlinePlus topics through a scripted pipeline.
